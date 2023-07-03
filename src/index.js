@@ -145,15 +145,17 @@ class Sdk {
     const walletTransaction = await wallet.populateTransaction(transaction);
     const signedTransaction = await wallet.signTransaction(walletTransaction);
 
-    // Calculate transaction hash before sending
+    // Notify user the order is being submitted
     const transactionHash = ethers.keccak256(signedTransaction);
-    this.orderSubmitted({ transactionHash });
+    this.orderSubmitted({ order, transactionHash });
 
     // Submit transaction
     await wallet.sendTransaction(transaction).catch((err) => {
       log("Error sending transaction", err);
       return;
     });
+
+    // Notify user the order is filled
     this.orderFilled({ order, transactionHash });
   }
 
