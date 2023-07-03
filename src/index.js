@@ -15,6 +15,12 @@ const ORDER_SUBMITTED_ACTION = "orderSubmitted";
 const ORDER_FILLED_ACTION = "orderFilled";
 const ACTIVE_QUOTES_ACTION = "activeQuotes";
 
+const defaultRpcs = {
+  250: "https://rpc.ankr.com/fantom",
+  1: "https://rpc.ankr.com/eth",
+  43114: "https://rpc.ankr.com/avalanche",
+};
+
 class Sdk {
   constructor({
     websocketUrl = "wss://solver.openflow.fi",
@@ -29,11 +35,11 @@ class Sdk {
     this.quoteHandler = quoteHandler;
     this.fillHandler = fillHandler;
     this.executors = executors || {};
-    this.rpcs = rpcs || {};
+    this.rpcs = { ...defaultRpcs, ...rpcs };
     this.privateKey = privateKey;
   }
 
-  getContract(address, abi, chainId) {
+  getWallet(chainId) {
     const rpc = this.rpcs[chainId];
     if (!rpc) {
       log(
@@ -45,9 +51,8 @@ class Sdk {
     if (!provider) {
       console.log("missing provider!!!");
     }
-    const wallet = new ethers.Wallet(this.privateKey, this.providers[chainId]);
-    this.wallets[chainId] = wallet;
-    return new ethers.Contract(address, abi, this.wallets[chainId]);
+    const wallet = new ethers.Wallet(this.privateKey, provider);
+    return wallet;
   }
 
   async authenticate(authenticationPayload) {
@@ -73,17 +78,18 @@ class Sdk {
     });
   }
 
-  async orderFilled(order) {
+  async orderFilled({ order, transactionHash }) {
+    log("Order filled", transactionHash);
     this.client.sendJson({
       type: ORDER_FILLED_ACTION,
-      payload: order,
+      payload: { order, transactionHash },
     });
   }
 
   async executeOrder(order, toAmountOverride, target, executorData) {
-    log("Execuring order", target);
+    log("Executing order", target);
     if (target) {
-      order.data = generateGenericSolverData({
+      order.data = utils.generateGenericSolverData({
         order,
         toAmountOverride,
         target,
@@ -91,7 +97,8 @@ class Sdk {
       });
     }
 
-    const executor = this.executorContracts[order.chainId];
+    const wallet = this.getWallet(order.chainId);
+    const executor = new ethers.Contract(DEFAULT_EXECUTOR, executorAbi, wallet);
 
     const { signature, message, data } = order;
     const args = {
@@ -101,7 +108,6 @@ class Sdk {
       payload: message,
     };
 
-    const wallet = this.wallets[order.chainId];
     const provider = wallet.provider;
     const feeData = await provider.getFeeData();
     const { gasPrice } = feeData;
