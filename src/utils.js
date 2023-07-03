@@ -62,7 +62,6 @@ class Utils {
     order: {
       message: { fromToken, toToken, fromAmount, toAmount, recipient },
     },
-    toAmountOverride,
     target,
     data,
   }) {
@@ -73,15 +72,7 @@ class Utils {
 
     const solverData = ethers.AbiCoder.defaultAbiCoder().encode(
       ["address", "address", "uint", "uint", "address", "address", "bytes"],
-      [
-        fromToken,
-        toToken,
-        fromAmount,
-        toAmountOverride.toString(),
-        recipient,
-        target,
-        data,
-      ]
+      [fromToken, toToken, fromAmount, toAmount, recipient, target, data]
     );
     return frontPad(solverData);
   }

@@ -39,7 +39,7 @@ class Sdk {
     this.privateKey = privateKey;
   }
 
-  getWallet(chainId) {
+  getProvider(chainId) {
     const rpc = this.rpcs[chainId];
     if (!rpc) {
       log(
@@ -48,9 +48,11 @@ class Sdk {
       throw "Error in generateProviders()";
     }
     const provider = new ethers.JsonRpcProvider(rpc);
-    if (!provider) {
-      console.log("missing provider!!!");
-    }
+    return provider;
+  }
+
+  getWallet(chainId) {
+    const provider = this.getProvider(chainId);
     const wallet = new ethers.Wallet(this.privateKey, provider);
     return wallet;
   }
@@ -86,19 +88,15 @@ class Sdk {
     });
   }
 
-  async executeOrder(order, toAmountOverride, target, executorData) {
-    log("Executing order", target);
+  async generateTransaction(order, target, executorData) {
     if (target) {
+      log("Generating transaction to target", target);
       order.data = utils.generateGenericSolverData({
         order,
-        toAmountOverride,
         target,
         data: executorData,
       });
     }
-
-    const wallet = this.getWallet(order.chainId);
-    const executor = new ethers.Contract(DEFAULT_EXECUTOR, executorAbi, wallet);
 
     const { signature, message, data } = order;
     const args = {
@@ -108,7 +106,12 @@ class Sdk {
       payload: message,
     };
 
-    const provider = wallet.provider;
+    const provider = this.getProvider(order.chainId);
+    const executor = new ethers.Contract(
+      DEFAULT_EXECUTOR,
+      executorAbi,
+      provider
+    );
     const feeData = await provider.getFeeData();
     const { gasPrice } = feeData;
 
@@ -117,23 +120,30 @@ class Sdk {
     ]);
 
     const gas = 8000000;
-
-    let transaction = {
+    const transaction = {
       to: executor,
       gasLimit: gas,
       gasPrice,
       data: calldata,
     };
     try {
-      await wallet.provider.estimateGas(transaction);
+      await provider.estimateGas(transaction);
+      return transaction;
     } catch (err) {
       console.log(transaction);
       console.log("Transaction will fail", err.reason);
       return;
     }
+  }
 
-    transaction = await wallet.populateTransaction(transaction);
-    const signedTransaction = await wallet.signTransaction(transaction);
+  async executeOrder(order, target, executorData) {
+    const transaction = this.generateTransaction(order, target, executorData);
+    if (!transaction) {
+      return;
+    }
+    const wallet = this.getWallet(order.chainId);
+    const walletTransaction = await wallet.populateTransaction(transaction);
+    const signedTransaction = await wallet.signTransaction(walletTransaction);
 
     // Calculate transaction hash before sending
     const transactionHash = ethers.keccak256(signedTransaction);
@@ -147,13 +157,15 @@ class Sdk {
     this.orderFilled({ order, transactionHash });
   }
 
-  async connect() {
-    const authPayload = utils.generateAuthenticationPayload(this.privateKey);
-    if (!this.privateKey) {
-      log(
-        "Cannot authenticate. Please either provide a private key in options or generate an authentication payload and pass it to connect manually"
-      );
-      return;
+  async connect(authPayload) {
+    if (!authPayload) {
+      if (!this.privateKey) {
+        log(
+          "Cannot authenticate. Please either provide a private key in options or generate an authentication payload and pass it to connect manually"
+        );
+        return;
+      }
+      authPayload = utils.generateAuthenticationPayload(this.privateKey);
     }
 
     log(`Connecting to ${this.websocketUrl}...`);
