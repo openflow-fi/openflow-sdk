@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@metamask/eth-sig-util": "^6.0.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.6.2",
+    "keccak": "^3.0.3",
+    "reconnecting-websocket": "^4.4.0",
+    "secp256k1": "^5.0.0",
+    "ws": "^8.13.0"
+  }
+}

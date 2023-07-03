@@ -1,0 +1,161 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_settlement", "type": "address" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          { "internalType": "bytes", "name": "signature", "type": "bytes" },
+          {
+            "internalType": "bytes",
+            "name": "multisigSignature",
+            "type": "bytes"
+          },
+          { "internalType": "bytes", "name": "data", "type": "bytes" },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "fromToken",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "toToken",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "fromAmount",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "toAmount",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "recipient",
+                "type": "address"
+              },
+              {
+                "internalType": "uint32",
+                "name": "validFrom",
+                "type": "uint32"
+              },
+              { "internalType": "uint32", "name": "validTo", "type": "uint32" },
+              {
+                "internalType": "address",
+                "name": "driver",
+                "type": "address"
+              },
+              {
+                "internalType": "enum ISettlement.Scheme",
+                "name": "scheme",
+                "type": "uint8"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "target",
+                    "type": "address"
+                  },
+                  { "internalType": "bytes", "name": "data", "type": "bytes" }
+                ],
+                "internalType": "struct ISettlement.Condition",
+                "name": "condition",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "target",
+                    "type": "address"
+                  },
+                  { "internalType": "bytes", "name": "data", "type": "bytes" },
+                  {
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                  }
+                ],
+                "internalType": "struct ISettlement.Interaction[]",
+                "name": "preHooks",
+                "type": "tuple[]"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "target",
+                    "type": "address"
+                  },
+                  { "internalType": "bytes", "name": "data", "type": "bytes" },
+                  {
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                  }
+                ],
+                "internalType": "struct ISettlement.Interaction[]",
+                "name": "postHooks",
+                "type": "tuple[]"
+              }
+            ],
+            "internalType": "struct ISettlement.Payload",
+            "name": "payload",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ISettlement.Order",
+        "name": "order",
+        "type": "tuple"
+      }
+    ],
+    "name": "executeOrder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes", "name": "orderData", "type": "bytes" }
+    ],
+    "name": "hook",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "settlement",
+    "outputs": [
+      { "internalType": "contract ISettlement", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "contract IERC20", "name": "token", "type": "address" },
+      { "internalType": "address", "name": "recipient", "type": "address" }
+    ],
+    "name": "sweep",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
