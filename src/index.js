@@ -132,12 +132,15 @@ class Sdk {
     } catch (err) {
       console.log(transaction);
       console.log("Transaction will fail", err.reason);
-      return;
     }
   }
 
   async executeOrder(order, target, executorData) {
-    const transaction = this.generateTransaction(order, target, executorData);
+    const transaction = await this.generateTransaction(
+      order,
+      target,
+      executorData
+    );
     if (!transaction) {
       return;
     }
